@@ -4,6 +4,7 @@ import com.example.simpleshop.domain.dto.AddOrderDTO;
 import com.example.simpleshop.domain.dto.ErrorResponse;
 import com.example.simpleshop.domain.dto.OrderSummaryDTO;
 import com.example.simpleshop.domain.model.Order;
+import com.example.simpleshop.exceptions.AuthorizationException;
 import com.example.simpleshop.exceptions.InvalidParameterException;
 import com.example.simpleshop.service.OrderService;
 import com.example.simpleshop.service.PrincipalService;
@@ -14,10 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 
@@ -43,6 +41,24 @@ public class OrderController {
         } catch(InvalidParameterException ex) {
             final ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @PatchMapping("/{orderId}/pay")
+    public ResponseEntity<Object> payForOrder(@PathVariable(name = "orderId") BigInteger orderId) {
+        try {
+            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            final String clientEmail = authentication.getPrincipal().toString();
+            final BigInteger clientId = principalService.getPrincipal(clientEmail).getId();
+
+            orderService.payForOrder(clientId, orderId);
+            return ResponseEntity.noContent().build();
+        } catch(InvalidParameterException ex) {
+            final ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch(AuthorizationException ex) {
+            final ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
     }
 }

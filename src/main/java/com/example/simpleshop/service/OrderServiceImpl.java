@@ -8,6 +8,7 @@ import com.example.simpleshop.domain.model.Order;
 import com.example.simpleshop.domain.model.OrderItem;
 import com.example.simpleshop.domain.model.OrderItemId;
 import com.example.simpleshop.domain.model.Product;
+import com.example.simpleshop.exceptions.AuthorizationException;
 import com.example.simpleshop.exceptions.InvalidParameterException;
 import com.example.simpleshop.repository.OrderItemRepository;
 import com.example.simpleshop.repository.OrderRepository;
@@ -105,5 +106,27 @@ public class OrderServiceImpl implements OrderService {
             orderItemsToAdd.add(orderItemToAdd);
         }
         return OrderMapper.toOrderSummaryDTO(orderToAdd);
+    }
+
+    @Override
+    public void payForOrder(BigInteger clientId, BigInteger orderId) {
+        if(orderId == null) {
+            throw new InvalidParameterException("Order id can't be null");
+        }
+        final Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new InvalidParameterException("Order with provided id doesn't exist"));
+
+        if(clientId == null) {
+            throw new InvalidParameterException("Client id can't be null");
+        }
+        if(order.getClientId().compareTo(clientId) != 0) {
+            throw new AuthorizationException("Client can't pay for orders of other clients");
+        }
+
+        if(order.getPaid()) {
+            throw new InvalidParameterException("Client has already paid for order");
+        }
+
+        order.setPaid(true);
     }
 }
