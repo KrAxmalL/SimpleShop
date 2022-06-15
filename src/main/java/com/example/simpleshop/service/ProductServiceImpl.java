@@ -28,6 +28,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product addProduct(AddProductDTO addProductDTO) {
+        if(addProductDTO == null) {
+            throw new InvalidParameterException("Product must not be null");
+        }
+
         String productName = addProductDTO.getProductName();
         if(StringUtils.isNullOrEmpty(productName)) {
             throw new InvalidParameterException("Product name must not be null or empty");
