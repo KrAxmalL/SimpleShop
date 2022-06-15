@@ -1,7 +1,9 @@
 package com.example.simpleshop.domain.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
@@ -12,6 +14,8 @@ import java.util.Collection;
 @Table(name = "principal")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Principal implements UserDetails {
 
     @Id

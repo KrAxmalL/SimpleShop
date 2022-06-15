@@ -1,7 +1,9 @@
 package com.example.simpleshop.domain.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
@@ -11,6 +13,8 @@ import java.math.BigInteger;
 @Table(name = "role")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Role implements GrantedAuthority {
 
     @Id
