@@ -87,7 +87,7 @@ public class JWTTokenServiceImpl implements JWTTokenService {
     @Override
     public boolean isValidToken(String token) {
         try {
-            DecodedJWT decodedToken = jwtManager.verifyToken(token);
+            jwtManager.verifyToken(token);
             return true;
         } catch(JWTVerificationException ex) {
             return false;
@@ -97,12 +97,10 @@ public class JWTTokenServiceImpl implements JWTTokenService {
     @Override
     public boolean isTokenExpired(String token) {
         try {
-            final Date now = new Date();
-            return jwtManager.verifyToken(token)
-                    .getExpiresAt()
-                    .before(now);
-        } catch(TokenExpiredException ex) {
+            jwtManager.verifyToken(token);
             return false;
+        } catch(TokenExpiredException ex) {
+            return true;
         } catch (JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
