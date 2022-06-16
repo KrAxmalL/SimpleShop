@@ -60,8 +60,7 @@ public class JWTTokenServiceImpl implements JWTTokenService {
     @Override
     public String getEmail(String token) {
         try {
-            return jwtManager.verifyToken(token)
-                    .getSubject();
+            return jwtManager.getEmail(token);
         } catch(JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
@@ -70,9 +69,7 @@ public class JWTTokenServiceImpl implements JWTTokenService {
     @Override
     public List<String> getRoles(String accessToken) {
         try {
-            return jwtManager.verifyToken(accessToken)
-                    .getClaim(JWTManager.CLAIM_ROLES)
-                    .asList(String.class);
+            return jwtManager.getRoles(accessToken);
         } catch(JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
