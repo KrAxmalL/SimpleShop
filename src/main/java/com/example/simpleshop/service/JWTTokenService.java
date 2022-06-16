@@ -14,8 +14,4 @@ public interface JWTTokenService {
     String getEmail(String token);
 
     List<String> getRoles(String accessToken);
-
-    boolean isValidToken(String token);
-
-    boolean isTokenExpired(String token);
 }

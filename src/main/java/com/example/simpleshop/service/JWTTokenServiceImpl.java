@@ -52,8 +52,6 @@ public class JWTTokenServiceImpl implements JWTTokenService {
             } else {
                 throw new TokenNotFoundException("Provided refresh token doesn't exist");
             }
-        } catch(TokenExpiredException ex) {
-            throw ex;
         } catch(JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
@@ -64,8 +62,6 @@ public class JWTTokenServiceImpl implements JWTTokenService {
         try {
             return jwtManager.verifyToken(token)
                     .getSubject();
-        } catch(TokenExpiredException ex) {
-            throw ex;
         } catch(JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
@@ -77,31 +73,7 @@ public class JWTTokenServiceImpl implements JWTTokenService {
             return jwtManager.verifyToken(accessToken)
                     .getClaim(JWTManager.CLAIM_ROLES)
                     .asList(String.class);
-        } catch(TokenExpiredException ex) {
-            throw ex;
         } catch(JWTVerificationException ex) {
-            throw new InvalidTokenException(ex.getMessage());
-        }
-    }
-
-    @Override
-    public boolean isValidToken(String token) {
-        try {
-            jwtManager.verifyToken(token);
-            return true;
-        } catch(JWTVerificationException ex) {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean isTokenExpired(String token) {
-        try {
-            jwtManager.verifyToken(token);
-            return false;
-        } catch(TokenExpiredException ex) {
-            return true;
-        } catch (JWTVerificationException ex) {
             throw new InvalidTokenException(ex.getMessage());
         }
     }
