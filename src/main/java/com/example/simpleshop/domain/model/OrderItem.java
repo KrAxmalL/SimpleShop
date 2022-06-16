@@ -20,4 +20,12 @@ public class OrderItem {
 
     @Column(name = "product_quantity")
     private Integer productQuantity;
+
+    @Override
+    public String toString() {
+        return "OrderItem{" +
+                "orderItemId=" + orderItemId +
+                ", productQuantity=" + productQuantity +
+                '}';
+    }
 }

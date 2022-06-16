@@ -40,4 +40,12 @@ public class OrderItemId implements Serializable {
     public int hashCode() {
         return Objects.hash(product, order);
     }
+
+    @Override
+    public String toString() {
+        return "OrderItemId{" +
+                "product=" + product +
+                ", order=" + order +
+                '}';
+    }
 }

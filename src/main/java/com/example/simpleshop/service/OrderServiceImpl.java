@@ -15,14 +15,19 @@ import com.example.simpleshop.repository.OrderRepository;
 import com.example.simpleshop.repository.PrincipalRepository;
 import com.example.simpleshop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -33,6 +38,12 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
     private final PrincipalRepository principalRepository;
+
+    private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
+
+    private final DeleteUnpaidOrderService deleteUnpaidOrderService;
+
+    private static final long UNPAID_ORDER_DELETION_DELAY_MILLIS = 10 * 60 * 1000;
 
     @Override
     public OrderSummaryDTO addOrder(AddOrderDTO addOrderDTO) {
@@ -105,6 +116,9 @@ public class OrderServiceImpl implements OrderService {
 
             orderItemsToAdd.add(orderItemToAdd);
         }
+        threadPoolTaskScheduler.schedule(new DeleteUnpaidOrderTask(deleteUnpaidOrderService, orderToAdd.getOrderId()),
+                new Date(System.currentTimeMillis() + UNPAID_ORDER_DELETION_DELAY_MILLIS));
+
         return OrderMapper.toOrderSummaryDTO(orderToAdd);
     }
 
@@ -128,5 +142,46 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setPaid(true);
+    }
+}
+
+//Moved to separate class to make deletion transactional in other thread
+@Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+class DeleteUnpaidOrderService {
+
+    private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final OrderItemRepository orderItemRepository;
+
+    @Transactional
+    public void deleteUnpaidOrder(BigInteger orderId) {
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        orderOpt.ifPresent((order) -> {
+            if(!order.getPaid()) {
+                for(OrderItem orderItem: order.getOrderItems()) {
+                    final Product product = orderItem.getOrderItemId().getProduct();
+                    product.setProductQuantity(product.getProductQuantity() + orderItem.getProductQuantity());
+                    productRepository.save(product);
+                    orderItemRepository.deleteOrderItem(orderItem.getOrderItemId().getOrder().getOrderId(),
+                            orderItem.getOrderItemId().getProduct().getProductId());
+                }
+                orderRepository.deleteOrder(orderId);
+            }
+        });
+    }
+}
+
+@RequiredArgsConstructor
+@Slf4j
+class DeleteUnpaidOrderTask implements Runnable {
+
+    private final DeleteUnpaidOrderService deleteUnpaidOrderService;
+    private final BigInteger orderId;
+
+    @Override
+    public void run() {
+        log.info("Scheduled deletion of unpaid order");
+        deleteUnpaidOrderService.deleteUnpaidOrder(orderId);
     }
 }

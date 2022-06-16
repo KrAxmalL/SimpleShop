@@ -7,7 +7,7 @@ public class OrderItemMapper {
 
     public static OrderItemSummaryDTO toOrderItemSummaryDTO(OrderItem orderItem) {
         OrderItemSummaryDTO orderItemSummaryDTO = new OrderItemSummaryDTO();
-        orderItemSummaryDTO.setProductId(orderItem.getOrderItemId().getProduct().getId());
+        orderItemSummaryDTO.setProductId(orderItem.getOrderItemId().getProduct().getProductId());
         orderItemSummaryDTO.setProductQuantity(orderItem.getProductQuantity());
         return orderItemSummaryDTO;
     }
